@@ -4,4 +4,6 @@ spacy
 notebook
 matplotlib
 seaborn
-fasthtml
+python-fasthtml
+flask
+plotly

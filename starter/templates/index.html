@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Review Classifier</title>
+  <script src="https://unpkg.com/htmx.org@1.9.2"></script>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+  <h1>Enter a Review</h1>
+
+  <form hx-post="/predict" hx-target="#result" hx-swap="innerHTML">
+    <textarea name="text" rows="4" cols="60"></textarea><br>
+    <button type="submit">Predict</button>
+  </form>
+
+  <div id="result"></div>
+
+  <hr>
+  <h2>Top Positive Features</h2>
+  <ul>
+    {% for word, weight in top_pos %}
+      <li>{{ word }} ({{ '%.3f'|format(weight) }})</li>
+    {% endfor %}
+  </ul>
+
+  <h2>Top Negative Features</h2>
+  <ul>
+    {% for word, weight in top_neg %}
+      <li>{{ word }} ({{ '%.3f'|format(weight) }})</li>
+    {% endfor %}
+  </ul>
+
+  <hr>
+  <h2>Class Distribution</h2>
+  {{ class_plot|safe }}
+</body>
+</html>
