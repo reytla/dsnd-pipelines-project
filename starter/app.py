@@ -88,31 +88,90 @@
 
 # if __name__ == "__main__":
 #     app.run(debug=True)
+### 2
+# from flask import Flask, render_template_string
+# import joblib
+# import numpy as np
+
+# # Load model pipeline
+# model_pipeline = joblib.load("model_logreg.pkl")
+
+# # Extract the column transformer
+# column_transformer = model_pipeline.named_steps["columntransformer"]
+
+# # Access the 'review_tfidf' sub-pipeline
+# review_tfidf_pipeline = column_transformer.named_transformers_["review_tfidf"]
+
+# # Get the TfidfVectorizer
+# tfidf_vectorizer = review_tfidf_pipeline.named_steps["tfidf_vectorizer"]
+
+# # Extract feature names
+# feature_names = tfidf_vectorizer.get_feature_names_out()
+
+# # Get coefficients from Logistic Regression
+# logreg = model_pipeline.named_steps["logisticregression"]
+# coefs = logreg.coef_[0]
+
+# # Get top 10 features by absolute weight
+# feature_importances = list(zip(feature_names, coefs))
+# sorted_features = sorted(feature_importances, key=lambda x: abs(x[1]), reverse=True)
+# top_features = sorted_features[:10]
+
+# # Flask app setup
+# app = Flask(__name__)
+
+# @app.route("/")
+# def home():
+#     html_template = """
+#     <html>
+#         <head><title>Top Features</title></head>
+#         <body>
+#             <h2>Top 10 Most Influential Review Words</h2>
+#             <table border="1">
+#                 <tr><th>Feature</th><th>Coefficient</th></tr>
+#                 {% for feature, coef in features %}
+#                 <tr><td>{{ feature }}</td><td>{{ '{0:.4f}'.format(coef) }}</td></tr>
+#                 {% endfor %}
+#             </table>
+#         </body>
+#     </html>
+#     """
+#     return render_template_string(html_template, features=top_features)
+
+# if __name__ == "__main__":
+#     app.run(debug=True)
 
 from flask import Flask, render_template_string
 import joblib
 import numpy as np
+import pandas as pd
+from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score
 
 # Load model pipeline
 model_pipeline = joblib.load("model_logreg.pkl")
 
-# Extract the column transformer
+# Load test data
+X_test = joblib.load("X_test.pkl")
+y_test = joblib.load("y_test.pkl")
+
+# Predict
+y_pred = model_pipeline.predict(X_test)
+
+# Metrics
+cm = confusion_matrix(y_test, y_pred)
+accuracy = accuracy_score(y_test, y_pred)
+precision = precision_score(y_test, y_pred)
+recall = recall_score(y_test, y_pred)
+f1 = f1_score(y_test, y_pred)
+
+# Extract the column transformer and TF-IDF vectorizer
 column_transformer = model_pipeline.named_steps["columntransformer"]
-
-# Access the 'review_tfidf' sub-pipeline
 review_tfidf_pipeline = column_transformer.named_transformers_["review_tfidf"]
-
-# Get the TfidfVectorizer
 tfidf_vectorizer = review_tfidf_pipeline.named_steps["tfidf_vectorizer"]
 
-# Extract feature names
+# Get top features
 feature_names = tfidf_vectorizer.get_feature_names_out()
-
-# Get coefficients from Logistic Regression
-logreg = model_pipeline.named_steps["logisticregression"]
-coefs = logreg.coef_[0]
-
-# Get top 10 features by absolute weight
+coefs = model_pipeline.named_steps["logisticregression"].coef_[0]
 feature_importances = list(zip(feature_names, coefs))
 sorted_features = sorted(feature_importances, key=lambda x: abs(x[1]), reverse=True)
 top_features = sorted_features[:10]
@@ -124,7 +183,7 @@ app = Flask(__name__)
 def home():
     html_template = """
     <html>
-        <head><title>Top Features</title></head>
+        <head><title>Model Summary</title></head>
         <body>
             <h2>Top 10 Most Influential Review Words</h2>
             <table border="1">
@@ -133,10 +192,38 @@ def home():
                 <tr><td>{{ feature }}</td><td>{{ '{0:.4f}'.format(coef) }}</td></tr>
                 {% endfor %}
             </table>
+            <br>
+            <h2>Confusion Matrix</h2>
+            <table border="1">
+                {% for row in confusion_matrix %}
+                <tr>
+                    {% for value in row %}
+                    <td>{{ value }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </table>
+            <br>
+            <h2>Evaluation Metrics</h2>
+            <ul>
+                <li><strong>Accuracy:</strong> {{ '{0:.4f}'.format(accuracy) }}</li>
+                <li><strong>Precision:</strong> {{ '{0:.4f}'.format(precision) }}</li>
+                <li><strong>Recall:</strong> {{ '{0:.4f}'.format(recall) }}</li>
+                <li><strong>F1 Score:</strong> {{ '{0:.4f}'.format(f1) }}</li>
+            </ul>
         </body>
     </html>
     """
-    return render_template_string(html_template, features=top_features)
+    return render_template_string(
+        html_template,
+        features=top_features,
+        confusion_matrix=cm.tolist(),
+        accuracy=accuracy,
+        precision=precision,
+        recall=recall,
+        f1=f1
+    )
 
 if __name__ == "__main__":
     app.run(debug=True)
+
