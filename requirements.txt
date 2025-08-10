@@ -4,3 +4,4 @@ spacy
 notebook
 matplotlib
 seaborn
+fasthtml
