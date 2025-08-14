@@ -1,3 +1,7 @@
+
+MENTION CUSTOM_TRANSFORMERS
+
+
 # Clothing Recommendation Pipeline Project
 
 This project predicts whether a customer recommends a clothing item based on their review. The pipeline handles numerical, categorical, and text features, and uses models like Logistic Regression and Random Forest.

@@ -7,3 +7,4 @@ seaborn
 python-fasthtml
 flask
 plotly
+joblib
