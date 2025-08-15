@@ -55,7 +55,6 @@ This project includes a simple web application built with Flask, located in `sta
 3. Open your web browser and go to [http://localhost:5000](http://localhost:5000) to access the app.
 
 The app uses the trained models and outputs from the pipeline (such as saved figures in the `static/` directory) to provide an interactive experience.
----
 
 ## Project Structure
 
